@@ -53,3 +53,57 @@ export async function keluar() {
 
 export const logout = keluar;
 
+export async function gantiPassword(prevStateOrFormData, formDataArg) {
+  const formData =
+    formDataArg instanceof FormData ? formDataArg : prevStateOrFormData;
+
+  const passwordBaru = formData?.get("password_baru")?.toString() || "";
+  const konfirmasiPassword =
+    formData?.get("konfirmasi_password")?.toString() || "";
+
+  if (!passwordBaru || !konfirmasiPassword) {
+    return { error: "Semua kolom password wajib diisi." };
+  }
+
+  if (passwordBaru.length < 8) {
+    return { error: "Password baru minimal 8 karakter." };
+  }
+
+  if (passwordBaru !== konfirmasiPassword) {
+    return { error: "Konfirmasi password tidak sama dengan password baru." };
+  }
+
+  let supabase;
+  try {
+    supabase = await createSessionClient();
+  } catch (err) {
+    return { error: err.message || "Gagal membuat koneksi sesi admin." };
+  }
+
+  // Periksa apakah admin sedang login (aturan keamanan)
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { error: "Sesi admin telah berakhir. Silakan login kembali." };
+  }
+
+  const { error: updateError } = await supabase.auth.updateUser({
+    password: passwordBaru,
+  });
+
+  if (updateError) {
+    return {
+      error: updateError.message || "Gagal mengganti password.",
+    };
+  }
+
+  return {
+    success: true,
+    message: "Password berhasil diganti.",
+  };
+}
+
+export const changePassword = gantiPassword;
