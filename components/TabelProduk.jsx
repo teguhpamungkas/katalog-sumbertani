@@ -1,7 +1,16 @@
+"use client";
+
 import { formatRupiah } from "@/lib/format";
 import Tombol from "@/components/Tombol";
+import { hapusProduk } from "@/app/admin/actions";
 
 export default function TabelProduk({ daftarProduk }) {
+  const handleKonfirmasiHapus = (e, nama) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus produk "${nama}"?`)) {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className="overflow-x-auto rounded-2xl border border-garis">
       <table className="w-full min-w-[560px] text-left text-sm">
@@ -20,7 +29,11 @@ export default function TabelProduk({ daftarProduk }) {
             <tr key={produk.id} className="border-t border-garis">
               <td className="px-4 py-3">
                 <div className="flex items-center gap-3">
-                  <img src={produk.foto_url} alt="" className="h-10 w-10 rounded-md object-cover" />
+                  <img
+                    src={produk.foto_url}
+                    alt=""
+                    className="h-10 w-10 rounded-md object-cover bg-permukaan"
+                  />
                   <span className="font-semibold">{produk.nama}</span>
                 </div>
               </td>
@@ -28,13 +41,18 @@ export default function TabelProduk({ daftarProduk }) {
               <td className="px-4 py-3">{formatRupiah(produk.harga)}</td>
               <td className="px-4 py-3">
                 <div className="flex justify-end gap-2">
-                  {/* US-09 dan US-10 (bonus): ubah dan hapus produk */}
                   <Tombol href={`/admin/produk/${produk.id}/ubah`} varian="garis">
                     Ubah
                   </Tombol>
-                  <Tombol type="button" varian="bahaya">
-                    Hapus
-                  </Tombol>
+                  <form
+                    action={hapusProduk}
+                    onSubmit={(e) => handleKonfirmasiHapus(e, produk.nama)}
+                  >
+                    <input type="hidden" name="id" value={produk.id} />
+                    <Tombol type="submit" varian="bahaya">
+                      Hapus
+                    </Tombol>
+                  </form>
                 </div>
               </td>
             </tr>
